@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ian Ceazar Basco">
+
+<title>Data Exploration Project</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="DTC_quattro_files/libs/clipboard/clipboard.min.js"></script>
+<script src="DTC_quattro_files/libs/quarto-html/quarto.js"></script>
+<script src="DTC_quattro_files/libs/quarto-html/popper.min.js"></script>
+<script src="DTC_quattro_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="DTC_quattro_files/libs/quarto-html/anchor.min.js"></script>
+<link href="DTC_quattro_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="DTC_quattro_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="DTC_quattro_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="DTC_quattro_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="DTC_quattro_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Data Exploration Project</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ian Ceazar Basco </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="research-question" class="level2">
+<h2 class="anchored" data-anchor-id="research-question">Research Question</h2>
+<p>The College Scorecard was released at the start of September 2015.&nbsp;<strong>Among colleges that predominantly grant bachelor’s degrees</strong>, did the release of the Scorecard shift student interest to high-earnings colleges relative to low-earnings ones (as proxied by Google searches for keywords associated with those colleges)?</p>
+</section>
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rio)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vtable)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-cleaning" class="level2">
+<h2 class="anchored" data-anchor-id="data-cleaning">Data Cleaning</h2>
+<p>Reading and Aggregating the Google Trends data</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>googleTrends_list <span class="ot">&lt;-</span> <span class="fu">list.files</span>(<span class="at">path =</span> <span class="st">"./Lab3_Rawdata"</span>, <span class="at">pattern =</span> <span class="st">"trends_up_to_"</span>, <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>googleTrends_rawData <span class="ot">&lt;-</span> <span class="fu">import_list</span>(googleTrends_list, <span class="at">rbind =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>googleTrends_dataset <span class="ot">&lt;-</span> googleTrends_rawData <span class="sc">%&gt;%</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dateWeek =</span> <span class="fu">ymd</span>(<span class="fu">str_sub</span>(monthorweek, <span class="at">end =</span> <span class="dv">10</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dateMonth =</span> <span class="fu">floor_date</span>(dateWeek, <span class="st">'month'</span>))<span class="sc">%&gt;%</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(schname, keyword) <span class="sc">%&gt;%</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">indexStandard =</span> (index <span class="sc">-</span> <span class="fu">mean</span>(index, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">/</span> <span class="fu">sd</span>(index, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(schname, dateMonth) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">indexStandard =</span> <span class="fu">sum</span>(indexStandard, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reading and Merging the Scorecard data and filtering the data with just the predominantly bachelor’s degree-granting schools.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>scoreCard <span class="ot">&lt;-</span> <span class="fu">import</span>(<span class="st">'./Lab3_Rawdata/Most+Recent+Cohorts+(Scorecard+Elements).csv'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(scoreCard) <span class="ot">&lt;-</span> <span class="fu">tolower</span>(<span class="fu">names</span>(scoreCard))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># print(scoreCard)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>idName <span class="ot">&lt;-</span> <span class="fu">import</span>(<span class="st">'./Lab3_Rawdata/id_name_link.csv'</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>idName <span class="ot">&lt;-</span> idName <span class="sc">%&gt;%</span> </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(schname) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>join_idName <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(idName, googleTrends_dataset, <span class="fu">join_by</span>(schname))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>join_scoreCard <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(join_idName, scoreCard, <span class="fu">join_by</span>(unitid, opeid))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(join_scoreCard)</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>mainData <span class="ot">&lt;-</span> join_scoreCard <span class="sc">%&gt;%</span> </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(preddeg <span class="sc">==</span> <span class="dv">3</span>) <span class="sc">%&gt;%</span>   <span class="co"># Predominantly bachelor's-degree granting</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">earningsReported =</span> <span class="fu">as.integer</span>(<span class="st">`</span><span class="at">md_earn_wne_p10-reported-earnings</span><span class="st">`</span>)) <span class="sc">%&gt;%</span> <span class="co">#change to integer</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co"># vtable(mainData)</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(mainData)</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(mainData$earningsReported) # mean = $42,808</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="do">### use $42,808 as baseline for income.</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="do">### Sept 01, 2015 as cutoff</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="assumptions" class="level2">
+<h2 class="anchored" data-anchor-id="assumptions">Assumptions</h2>
+<p>To answer the research question we have to:</p>
+<p><strong>Define what are high and low-earning schools.</strong><br>
+I decided to look at the summary of the variable that reports the median earnings of graduates for each college. We can see that we have a mean of $42,808 and I decided to use that as my baseline. I think that it will be a better baseline because it is higher than the median which I feel is a good separator between low vs high income colleges. I created the <code>earningMedian</code> variable that has ‘1’ if the earnings reported are higher or equal to the mean value and outputs ‘0’ otherwise.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>mainData <span class="ot">&lt;-</span> mainData <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">earningMedian =</span> <span class="fu">case_when</span>(earningsReported <span class="sc">&gt;=</span> <span class="dv">42808</span> <span class="sc">~</span> <span class="st">'1'</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                                   earningsReported <span class="sc">&lt;</span> <span class="dv">42808</span> <span class="sc">~</span> <span class="st">'0'</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">releasedDate =</span> <span class="fu">case_when</span>(dateMonth <span class="sc">&gt;=</span> <span class="fu">ymd</span>(<span class="st">"2015-09-01"</span>) <span class="sc">~</span> <span class="st">'1'</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                                  dateMonth <span class="sc">&lt;</span> <span class="fu">ymd</span>(<span class="st">"2015-09-01"</span>) <span class="sc">~</span> <span class="st">'0'</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mainData<span class="sc">$</span>earningsReported)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  17600   35800   41200   42808   48800  121500 </code></pre>
+</div>
+</div>
+<p><strong>Decide what level should the data be at.<br>
+</strong>I decided to go with the school-month level because data cleaning would be simpler and easier when you need to figure out which data were from after or before the release of the Scorecard website. To achieve this, I created a new variable <code>releasedDate</code> which enters a ‘1’ if the date is after September 2015 and a ‘0’ if it is before.</p>
+</section>
+<section id="visualization" class="level2">
+<h2 class="anchored" data-anchor-id="visualization">Visualization</h2>
+<p>I was interested to get a visual of what the relationship is between the standardized index vs.&nbsp;the year for high and low-earning schools. To my surprise, the indexes for high-earning (1) schools had a higher drop compared to low-earning (0) schools even after the release of the Scorecard website.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mainData, <span class="fu">aes</span>(<span class="at">x=</span> dateMonth , <span class="at">y =</span> indexStandard, <span class="at">colour =</span> <span class="fu">factor</span>(earningMedian))) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>) <span class="sc">+</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">ymd</span>(<span class="st">"2015-09-01"</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fu">ymd</span>(<span class="st">"2015-09-01"</span>), <span class="at">y =</span> <span class="dv">6</span>, <span class="at">label =</span> <span class="st">"Released date"</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">hjust =</span> <span class="fl">1.05</span>, <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"green"</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"red"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="DTC_quattro_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># high earning colleges seems to have a lower index than low earning</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># colleges after the 09/2015 released date.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I wanted to confirm this by grouping the data by <code>earningMedian</code> and <code>releasedDate</code> and summarizing the index. The results confirmed that higher-earning (0.743) colleges had better indexes compared to low-earning (0.377) colleges BEFORE the launch of the Scorecard. The story is different post-launch as both categories experienced drops in their indexes. Particularly, higher-earning schools (-3.16)witnessed a more significant decline than lower-earning schools (-1.60).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mainData <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(earningMedian, releasedDate) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">mean</span>(indexStandard))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+# Groups:   earningMedian [2]
+  earningMedian releasedDate `mean(indexStandard)`
+  &lt;chr&gt;         &lt;chr&gt;                        &lt;dbl&gt;
+1 0             0                            0.377
+2 0             1                           -1.60 
+3 1             0                            0.743
+4 1             1                           -3.16 </code></pre>
+</div>
+</div>
+<p>These analyses give us an idea of what our regression results would look like.</p>
+</section>
+<section id="regressions" class="level2">
+<h2 class="anchored" data-anchor-id="regressions">Regressions</h2>
+<p>With my first regression, I went with using the standardized index as my dependent variable and included an interactive term in my independent variable. I added the interactive term to explore how the relationship between two variables changes based on the values of the other variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>regressionInt <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian, <span class="at">data =</span> mainData, , <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionInt)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                     regressionInt
+Dependent Var.:                      indexStandard
+                                                  
+Constant                         3.032*** (0.1046)
+month(dateMonth) = 2            -2.481*** (0.1288)
+month(dateMonth) = 3            -1.362*** (0.1352)
+month(dateMonth) = 4           -0.8856*** (0.1457)
+month(dateMonth) = 5            -5.567*** (0.1558)
+month(dateMonth) = 6            -10.41*** (0.1692)
+month(dateMonth) = 7            -7.160*** (0.1499)
+month(dateMonth) = 8             1.661*** (0.1583)
+month(dateMonth) = 9             5.361*** (0.1688)
+month(dateMonth) = 10            2.649*** (0.1468)
+month(dateMonth) = 11          -0.5934*** (0.1504)
+month(dateMonth) = 12           -8.966*** (0.1474)
+releasedDate1                   -3.861*** (0.1022)
+earningMedian1                  0.3621*** (0.0749)
+releasedDate1 x earningMedian1  -1.924*** (0.1726)
+______________________________ ___________________
+S.E. type                      Heteroskedast.-rob.
+Observations                                51,565
+R2                                         0.28824
+Adj. R2                                    0.28805
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Using <code>etable</code> we can see that all the independent variables are statistically significant. We can interpret the coefficient of <code>earningMedian1</code>, 0.3621, as the effect of high-income colleges on index scores before the release of the Scorecard. This means that higher-earning colleges have a 0.3621 higher index compared to low-earning colleges before the release of the Scorecard. We can interpret the interactive term <code>releasedDate1 x earningMedian1</code> as the effect of the Scorecard release date on the index is 1.924 lower for higher-earning colleges than lower-earning colleges.</p>
+<p>With a p-value of 2.2e-16, the <code>wald</code> test shows a result that is statistically significant at the 95% level.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Wald test, H0: joint nullity of month(dateMonth)::2, month(dateMonth)::3, month(dateMonth)::4, month(dateMonth)::5, month(dateMonth)::6, month(dateMonth)::7 and 8 others
+ stat = 1,296.9, p-value &lt; 2.2e-16, on 14 and 51,550 DoF, VCOV: Heteroskedasticity-robust.</code></pre>
+</div>
+</div>
+<p>With my second regression, I decided to add a fixed effect to my equation. I used <code>schname</code> for my fixed effect term and compared both regressions using <code>etable</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regressionFE <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian <span class="sc">|</span> schname, <span class="at">data =</span> mainData, <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionFE)</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt,regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                     regressionInt        regressionFE
+Dependent Var.:                      indexStandard       indexStandard
+                                                                      
+Constant                         3.032*** (0.1046)                    
+month(dateMonth) = 2            -2.481*** (0.1288)  -2.481*** (0.1305)
+month(dateMonth) = 3            -1.362*** (0.1352)  -1.359*** (0.1372)
+month(dateMonth) = 4           -0.8856*** (0.1457) -0.8858*** (0.1477)
+month(dateMonth) = 5            -5.567*** (0.1558)  -5.567*** (0.1580)
+month(dateMonth) = 6            -10.41*** (0.1692)  -10.41*** (0.1716)
+month(dateMonth) = 7            -7.160*** (0.1499)  -7.160*** (0.1520)
+month(dateMonth) = 8             1.661*** (0.1583)   1.661*** (0.1605)
+month(dateMonth) = 9             5.361*** (0.1688)   5.361*** (0.1711)
+month(dateMonth) = 10            2.649*** (0.1468)   2.649*** (0.1489)
+month(dateMonth) = 11          -0.5934*** (0.1504) -0.5934*** (0.1525)
+month(dateMonth) = 12           -8.966*** (0.1474)  -8.966*** (0.1495)
+releasedDate1                   -3.861*** (0.1022)  -3.862*** (0.1036)
+earningMedian1                  0.3621*** (0.0749)                    
+releasedDate1 x earningMedian1  -1.924*** (0.1726)  -1.924*** (0.1750)
+Fixed-Effects:                 ------------------- -------------------
+schname                                         No                 Yes
+______________________________ ___________________ ___________________
+S.E. type                      Heteroskedast.-rob. Heteroskedast.-rob.
+Observations                                51,565              51,565
+R2                                         0.28824             0.28825
+Within R2                                       --             0.28825
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The results that we get are similar to that of the first regression. However, I will still recommend using the model that included the fixed effects since it controls for variations within schools. Similar to the first regression, the <code>wald</code> test shows a result that is statistically significant at the 95% level.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Wald test, H0: joint nullity of month(dateMonth)::2, month(dateMonth)::3, month(dateMonth)::4, month(dateMonth)::5, month(dateMonth)::6, month(dateMonth)::7 and 7 others
+ stat = 1,356.9, p-value &lt; 2.2e-16, on 13 and 50,148 DoF, VCOV: Heteroskedasticity-robust.</code></pre>
+</div>
+</div>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                      regressionFE
+Dependent Var.:                      indexStandard
+                                                  
+month(dateMonth) = 2            -2.481*** (0.1305)
+month(dateMonth) = 3            -1.359*** (0.1372)
+month(dateMonth) = 4           -0.8858*** (0.1477)
+month(dateMonth) = 5            -5.567*** (0.1580)
+month(dateMonth) = 6            -10.41*** (0.1716)
+month(dateMonth) = 7            -7.160*** (0.1520)
+month(dateMonth) = 8             1.661*** (0.1605)
+month(dateMonth) = 9             5.361*** (0.1711)
+month(dateMonth) = 10            2.649*** (0.1489)
+month(dateMonth) = 11          -0.5934*** (0.1525)
+month(dateMonth) = 12           -8.966*** (0.1495)
+releasedDate1                   -3.862*** (0.1036)
+releasedDate1 x earningMedian1  -1.924*** (0.1750)
+Fixed-Effects:                 -------------------
+schname                                        Yes
+______________________________ ___________________
+S.E. type                      Heteroskedast.-rob.
+Observations                                51,565
+R2                                         0.28825
+Within R2                                  0.28825
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Based on my calculations, the introduction of the College Scorecard decreased search activity on Google Trends for colleges with high-earning graduates by 1.924 units relative to what it did for colleges with low-earning graduates, with a standard error of 0.1750. This result comes from the <code>releasedDate1 x earningMedian1</code> coefficient(s) in my regression.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

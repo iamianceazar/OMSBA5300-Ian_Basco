@@ -1,0 +1,163 @@
+---
+title: "Data Exploration Project"
+author: "Ian Ceazar Basco"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+## Research Question
+
+The College Scorecard was released at the start of September 2015. **Among colleges that predominantly grant bachelor’s degrees**, did the release of the Scorecard shift student interest to high-earnings colleges relative to low-earnings ones (as proxied by Google searches for keywords associated with those colleges)?
+
+## Libraries
+
+```{r}
+library(rio)
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(tidyr)
+library(vtable)
+library(fixest)
+```
+
+## Data Cleaning
+
+Reading and Aggregating the Google Trends data
+
+```{r}
+googleTrends_list <- list.files(path = "./Lab3_Rawdata", pattern = "trends_up_to_", full.names = TRUE)
+
+
+googleTrends_rawData <- import_list(googleTrends_list, rbind = TRUE)
+
+googleTrends_dataset <- googleTrends_rawData %>% 
+  mutate(dateWeek = ymd(str_sub(monthorweek, end = 10))) %>% 
+  mutate(dateMonth = floor_date(dateWeek, 'month'))%>% 
+  group_by(schname, keyword) %>%
+  mutate(indexStandard = (index - mean(index, na.rm = TRUE)) / sd(index, na.rm = TRUE)) %>% 
+  group_by(schname, dateMonth) %>% 
+  summarize(indexStandard = sum(indexStandard, na.rm = TRUE)) %>% 
+  drop_na()
+```
+
+Reading and Merging the Scorecard data and filtering the data with just the predominantly bachelor's degree-granting schools.
+
+```{r}
+scoreCard <- import('./Lab3_Rawdata/Most+Recent+Cohorts+(Scorecard+Elements).csv')
+names(scoreCard) <- tolower(names(scoreCard))
+# print(scoreCard)
+
+idName <- import('./Lab3_Rawdata/id_name_link.csv')
+idName <- idName %>% 
+  group_by(schname) %>% 
+  mutate(n = n()) %>% 
+  filter(n == 1)
+
+join_idName <- inner_join(idName, googleTrends_dataset, join_by(schname))
+join_scoreCard <- inner_join(join_idName, scoreCard, join_by(unitid, opeid))
+# summary(join_scoreCard)
+
+mainData <- join_scoreCard %>% 
+  filter(preddeg == 3) %>%   # Predominantly bachelor's-degree granting
+  mutate(earningsReported = as.integer(`md_earn_wne_p10-reported-earnings`)) %>% #change to integer
+  drop_na()
+
+# vtable(mainData)
+# summary(mainData)
+# summary(mainData$earningsReported) # mean = $42,808
+
+### use $42,808 as baseline for income.
+### Sept 01, 2015 as cutoff
+
+
+```
+
+## Assumptions
+
+To answer the research question we have to:
+
+**Define what are high and low-earning schools.**\
+I decided to look at the summary of the variable that reports the median earnings of graduates for each college. We can see that we have a mean of \$42,808 and I decided to use that as my baseline. I think that it will be a better baseline because it is higher than the median which I feel is a good separator between low vs high income colleges. I created the `earningMedian` variable that has '1' if the earnings reported are higher or equal to the mean value and outputs '0' otherwise.
+
+```{r}
+mainData <- mainData %>% 
+  mutate(earningMedian = case_when(earningsReported >= 42808 ~ '1',
+                                   earningsReported < 42808 ~ '0')) %>% 
+  mutate(releasedDate = case_when(dateMonth >= ymd("2015-09-01") ~ '1',
+                                  dateMonth < ymd("2015-09-01") ~ '0'))
+summary(mainData$earningsReported)
+```
+
+**Decide what level should the data be at.\
+**I decided to go with the school-month level because data cleaning would be simpler and easier when you need to figure out which data were from after or before the release of the Scorecard website. To achieve this, I created a new variable `releasedDate` which enters a '1' if the date is after September 2015 and a '0' if it is before.
+
+## Visualization
+
+I was interested to get a visual of what the relationship is between the standardized index vs. the year for high and low-earning schools. To my surprise, the indexes for high-earning (1) schools had a higher drop compared to low-earning (0) schools even after the release of the Scorecard website.
+
+```{r}
+ggplot(mainData, aes(x= dateMonth , y = indexStandard, colour = factor(earningMedian))) +
+  geom_smooth(method = 'lm') +
+  geom_vline(xintercept = ymd("2015-09-01"), linetype = "dashed", color = "blue") +
+  annotate("text", x = ymd("2015-09-01"), y = 6, label = "Released date", vjust = 1, hjust = 1.05, color = "blue", size = 3) +
+  scale_color_manual(values = c("1" = "green",
+                                "0" = "red"))
+# high earning colleges seems to have a lower index than low earning
+# colleges after the 09/2015 released date.
+```
+
+I wanted to confirm this by grouping the data by `earningMedian` and `releasedDate` and summarizing the index. The results confirmed that higher-earning (0.743) colleges had better indexes compared to low-earning (0.377) colleges BEFORE the launch of the Scorecard. The story is different post-launch as both categories experienced drops in their indexes. Particularly, higher-earning schools (-3.16)witnessed a more significant decline than lower-earning schools (-1.60).
+
+```{r}
+mainData %>% 
+  group_by(earningMedian, releasedDate) %>% 
+  summarize(mean(indexStandard))
+```
+
+These analyses give us an idea of what our regression results would look like.
+
+## Regressions
+
+With my first regression, I went with using the standardized index as my dependent variable and included an interactive term in my independent variable. I added the interactive term to explore how the relationship between two variables changes based on the values of the other variable.
+
+```{r}
+regressionInt <- feols(indexStandard ~ i(month(dateMonth)) + releasedDate + earningMedian + releasedDate*earningMedian, data = mainData, , vcov = 'hetero')
+# summary(regressionInt)
+etable(regressionInt)
+```
+
+Using `etable` we can see that all the independent variables are statistically significant. We can interpret the coefficient of `earningMedian1`, 0.3621, as the effect of high-income colleges on index scores before the release of the Scorecard. This means that higher-earning colleges have a 0.3621 higher index compared to low-earning colleges before the release of the Scorecard. We can interpret the interactive term `releasedDate1 x earningMedian1` as the effect of the Scorecard release date on the index is 1.924 lower for higher-earning colleges than lower-earning colleges.
+
+With a p-value of 2.2e-16, the `wald` test shows a result that is statistically significant at the 95% level.
+
+```{r}
+wald(regressionInt)
+```
+
+With my second regression, I decided to add a fixed effect to my equation. I used `schname` for my fixed effect term and compared both regressions using `etable`.
+
+```{r}
+regressionFE <- feols(indexStandard ~ i(month(dateMonth)) + releasedDate + earningMedian + releasedDate*earningMedian | schname, data = mainData, vcov = 'hetero')
+# summary(regressionFE)
+etable(regressionInt,regressionFE)
+```
+
+The results that we get are similar to that of the first regression. However, I will still recommend using the model that included the fixed effects since it controls for variations within schools. Similar to the first regression, the `wald` test shows a result that is statistically significant at the 95% level.
+
+```{r}
+wald(regressionFE)
+```
+
+## Conclusion
+
+Based on my calculations, the introduction of the College Scorecard decreased search activity on Google Trends for colleges with high-earning graduates by 1.924 units relative to what it did for colleges with low-earning graduates, with a standard error of 0.1750. This result comes from the `releasedDate1 x earningMedian1` coefficient(s) in my regression.
+
+```{r}
+etable(regressionFE)
+```
