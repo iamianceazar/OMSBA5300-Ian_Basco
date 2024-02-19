@@ -217,15 +217,24 @@ I decided to look at the summary of the variable that reports the median earning
 4 1             1                           -3.16 </code></pre>
 </div>
 </div>
-<p>These analyses give us an idea of what our regression results would look like.</p>
+<p>I also wanted to see if we can visually see if heteroskedasticity is present. We can see from the below graph the uneven distribution of the scatterplot. This uneven distribution suggests that the variance of the dependent variable changes as the independent variable increases or decrease.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mainData, <span class="fu">aes</span>(<span class="at">x =</span> dateMonth, <span class="at">y =</span> indexStandard)) <span class="sc">+</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="DTC_quattro_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>These analyses give us an idea of what our regressions would look like.</p>
 </section>
 <section id="regressions" class="level2">
 <h2 class="anchored" data-anchor-id="regressions">Regressions</h2>
 <p>With my first regression, I went with using the standardized index as my dependent variable and included an interactive term in my independent variable. I added the interactive term to explore how the relationship between two variables changes based on the values of the other variable.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>regressionInt <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian, <span class="at">data =</span> mainData, , <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionInt)</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>regressionInt <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian, <span class="at">data =</span> mainData, , <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionInt)</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                                     regressionInt
 Dependent Var.:                      indexStandard
@@ -257,7 +266,7 @@ Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>Using <code>etable</code> we can see that all the independent variables are statistically significant. We can interpret the coefficient of <code>earningMedian1</code>, 0.3621, as the effect of high-income colleges on index scores before the release of the Scorecard. This means that higher-earning colleges have a 0.3621 higher index compared to low-earning colleges before the release of the Scorecard. We can interpret the interactive term <code>releasedDate1 x earningMedian1</code> as the effect of the Scorecard release date on the index is 1.924 lower for higher-earning colleges than lower-earning colleges.</p>
 <p>With a p-value of 2.2e-16, the <code>wald</code> test shows a result that is statistically significant at the 95% level.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionInt)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Wald test, H0: joint nullity of month(dateMonth)::2, month(dateMonth)::3, month(dateMonth)::4, month(dateMonth)::5, month(dateMonth)::6, month(dateMonth)::7 and 8 others
  stat = 1,296.9, p-value &lt; 2.2e-16, on 14 and 51,550 DoF, VCOV: Heteroskedasticity-robust.</code></pre>
@@ -265,9 +274,9 @@ Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <p>With my second regression, I decided to add a fixed effect to my equation. I used <code>schname</code> for my fixed effect term and compared both regressions using <code>etable</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>regressionFE <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian <span class="sc">|</span> schname, <span class="at">data =</span> mainData, <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionFE)</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt,regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>regressionFE <span class="ot">&lt;-</span> <span class="fu">feols</span>(indexStandard <span class="sc">~</span> <span class="fu">i</span>(<span class="fu">month</span>(dateMonth)) <span class="sc">+</span> releasedDate <span class="sc">+</span> earningMedian <span class="sc">+</span> releasedDate<span class="sc">*</span>earningMedian <span class="sc">|</span> schname, <span class="at">data =</span> mainData, <span class="at">vcov =</span> <span class="st">'hetero'</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(regressionFE)</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionInt,regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                                     regressionInt        regressionFE
 Dependent Var.:                      indexStandard       indexStandard
@@ -300,7 +309,7 @@ Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <p>The results that we get are similar to that of the first regression. However, I will still recommend using the model that included the fixed effects since it controls for variations within schools. Similar to the first regression, the <code>wald</code> test shows a result that is statistically significant at the 95% level.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wald</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Wald test, H0: joint nullity of month(dateMonth)::2, month(dateMonth)::3, month(dateMonth)::4, month(dateMonth)::5, month(dateMonth)::6, month(dateMonth)::7 and 7 others
  stat = 1,356.9, p-value &lt; 2.2e-16, on 13 and 50,148 DoF, VCOV: Heteroskedasticity-robust.</code></pre>
@@ -309,8 +318,9 @@ Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>Based on my calculations, the introduction of the College Scorecard decreased search activity on Google Trends for colleges with high-earning graduates by 1.924 units relative to what it did for colleges with low-earning graduates, with a standard error of 0.1750. This result comes from the <code>releasedDate1 x earningMedian1</code> coefficient(s) in my regression.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(regressionFE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                                      regressionFE
 Dependent Var.:                      indexStandard
@@ -339,7 +349,6 @@ Within R2                                  0.28825
 Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>Based on my calculations, the introduction of the College Scorecard decreased search activity on Google Trends for colleges with high-earning graduates by 1.924 units relative to what it did for colleges with low-earning graduates, with a standard error of 0.1750. This result comes from the <code>releasedDate1 x earningMedian1</code> coefficient(s) in my regression.</p>
 </section>
 
 </main>

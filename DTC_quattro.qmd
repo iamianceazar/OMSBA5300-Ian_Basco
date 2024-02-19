@@ -120,7 +120,15 @@ mainData %>%
   summarize(mean(indexStandard))
 ```
 
-These analyses give us an idea of what our regression results would look like.
+I also wanted to see if we can visually see if heteroskedasticity is present. We can see from the below graph the uneven distribution of the scatterplot. This uneven distribution suggests that the variance of the dependent variable changes as the independent variable increases or decrease.
+
+```{r}
+ggplot(mainData, aes(x = dateMonth, y = indexStandard)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+```
+
+These analyses give us an idea of what our regressions would look like.
 
 ## Regressions
 
