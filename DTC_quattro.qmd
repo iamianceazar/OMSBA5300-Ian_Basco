@@ -1,7 +1,7 @@
 ---
 title: "Data Exploration Project"
 author: "Ian Ceazar Basco"
-format: html
+format: docx
 editor: visual
 ---
 
